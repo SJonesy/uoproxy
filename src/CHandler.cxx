@@ -99,34 +99,7 @@ static PacketAction
 handle_walk(LinkedServer &ls,
             const void *data, [[maybe_unused]] size_t length)
 {
-    auto p = (const struct uo_packet_walk *)data;
-
-    assert(length == sizeof(*p));
-
-    if (!ls.connection->IsInGame())
-        return PacketAction::DISCONNECT;
-
-    if (ls.connection->client.reconnecting) {
-        World *world = &ls.connection->client.world;
-
-        /* while reconnecting, reject all walk requests */
-        struct uo_packet_walk_cancel p2 = {
-            .cmd = PCK_WalkCancel,
-            .seq = p->seq,
-            .x = world->packet_start.x,
-            .y = world->packet_start.y,
-            .direction = world->packet_start.direction,
-            .z = (int8_t)world->packet_start.z,
-        };
-
-        uo_server_send(ls.server, &p2, sizeof(p2));
-
-        return PacketAction::DROP;
-    }
-
-    connection_walk_request(ls, *p);
-
-    return PacketAction::DROP;
+    return PacketAction::ACCEPT;
 }
 
 static PacketAction
@@ -289,18 +262,6 @@ handle_target(LinkedServer &ls,
         ls.connection->BroadcastToInGameClientsExcept(&world->packet_target,
                                                        sizeof(world->packet_target),
                                                        ls);
-    }
-
-
-    if (p->allow_ground == 0 && p->serial == 0) {
-    // AFAICT, the only time we both don't allow ground targetting
-    // and don't have a serial for a target is when we are sending cancel
-    // target requests.. otherwise what would the target be?
-    }
-    else {
-        ls.connection->walk.seq_next = 0;
-        ls.connection->walk.queue_size = 0;
-        ls.connection->walk.server = nullptr;
     }
     
     return PacketAction::ACCEPT;

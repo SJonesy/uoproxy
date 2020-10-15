@@ -170,30 +170,13 @@ handle_mobile_update(Connection &c, const void *data, [[maybe_unused]] size_t le
 static PacketAction
 handle_walk_cancel(Connection &c, const void *data, [[maybe_unused]] size_t length)
 {
-    auto p = (const struct uo_packet_walk_cancel *)data;
-
-    assert(length == sizeof(*p));
-
-    if (!c.IsInGame())
-        return PacketAction::DISCONNECT;
-
-    connection_walk_cancel(c, *p);
-
-    return PacketAction::DROP;
+    return PacketAction::ACCEPT;
 }
 
 static PacketAction
 handle_walk_ack(Connection &c, const void *data, [[maybe_unused]] size_t length)
 {
-    auto p = (const struct uo_packet_walk_ack *)data;
-
-    assert(length == sizeof(*p));
-
-    connection_walk_ack(c, *p);
-
-    /* XXX: x/y/z etc. */
-
-    return PacketAction::DROP;
+    return PacketAction::ACCEPT;
 }
 
 static PacketAction
